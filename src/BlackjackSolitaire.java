@@ -8,9 +8,11 @@ public class BlackjackSolitaire {
                                            {"[  ]", "[  ]", "[  ]", "[  ]", "[  ]"},
                                            {"    ", "[  ]", "[  ]", "[  ]", "    "},
                                            {"    ", "[  ]", "[  ]", "[  ]", "    "}};
-    private static String[][] discards = {{"[  ]", "[  ]"}, {"[  ]", "[  ]"}}; //REMOVE STATIC
-    private boolean isComplete = false;
-    private Scanner userInput = new Scanner(System.in);
+    private static int discard = 4;
+    private static int row = 0;
+    private static int col = 0;
+    private static int filledCells = 0;
+    private static Scanner userInput = new Scanner(System.in);
 
 ////////////////////////////////////////////////////// play method /////////////////////////////////////////////////////
 
@@ -18,26 +20,26 @@ public class BlackjackSolitaire {
         //Instructions.welcomeMessage();
 
         //game loop
-        while(!isComplete){
+        while(filledCells < 16){
         System.out.println("Card: " + Card.card());
-        gameBoard();
+        showGameBoard(discard);
         System.out.println("Where would you like to place " + Card.card() + " ?");
-        String input = userInput.nextLine();   //use "nextLine" so that incorrect inputs won't cause error and quit the program
-        
-        //use regex to clean input
-        String cleanedInput = input.replaceAll("[^0-9]", "");
+        inputCheck();
 
-        //extract digits (-'0' converts charAt() to int)
-        int row = cleanedInput.charAt(0) - '0' - 1;
-        int col = cleanedInput.charAt(1) - '0' - 1;
+        //fill valid cell
         gameBoard[row][col] = "[" + Card.card() + "]";
+
+        //increment filledCells
+        filledCells++;
         }
+        showGameBoard(discard);
+        System.out.println("Game over.");
     }
 
 /////////////////////////////////////////////////// gameBoard method ///////////////////////////////////////////////////
 
-    public static void gameBoard() {
-        //gameboard top 2 rows
+    public static void showGameBoard(int discards) {
+        //gameBoard
         System.out.println("\t" + 1 + "\t" + " " +  2 + "\t" + " " + " " + 3 + "\t" + " " + " " + " " + 4 + "\t" + 5);
         for (int i = 0; i < 4; i++) {
             System.out.print(i + 1 + " ");
@@ -48,15 +50,57 @@ public class BlackjackSolitaire {
         }
         //discard pile
         System.out.println();
-        System.out.println("Discards");
-        System.out.println("\t" + "\t" + " " + " " + " " + 1 + "\t" + 2);
-        for (int i = 0; i < 2; i++) {
-            System.out.print(" " + " " + " " + " " + " " + " " + " " + (i + 1) + " ");
-            for (int j = 0; j < 2; j++) {
-                System.out.print(discards[i][j] + " ");
-            }
-            System.out.println();
-        }
+        System.out.println("Discards remaining: " + discards);
     }
+
+/////////////////////////////////////////////////// inputCheck method //////////////////////////////////////////////////
+
+    public static void inputCheck() {
+
+        while(true) {
+            //accept user input
+            String input = userInput.nextLine();   //use "nextLine" so wrong inputs won't cause error and quit program
+            String cleanedInput;
+
+            //check if input contains "discard"
+            if (input.equalsIgnoreCase("discard") && discard > 0) {
+                discard--;
+                //Card.remove();
+                System.out.println("Card: " + Card.card());
+                showGameBoard(discard);
+                System.out.println("Where would you like to place " + Card.card() + " ?");
+                continue;
+            } else if (input.equalsIgnoreCase("discard") && discard == 0) {
+                System.out.println("🤷‍♂️No more discards left! Where would you like to place " + Card.card() + " ?");
+                continue;
+            } else {
+                //use regex to clean input
+                cleanedInput = input.replaceAll("[^0-9]", "");
+                //check if input contains exactly 2 digits
+                if (cleanedInput.length() != 2) {
+                    System.out.println("😠Invalid input! Please try again.");
+                    continue;
+                }
+
+                //extract digits (-'0' converts charAt() to int)
+                row = cleanedInput.charAt(0) - '0' - 1;
+                col = cleanedInput.charAt(1) - '0' - 1;
+
+                //check if input is acceptable for gameBoard
+                if (row < 0 || col < 0 || row > 3 || col > 4 || (row == 2 && col == 0) || (row == 3 && col == 0) ||
+                        (row == 2 && col == 4) || (row == 3 && col == 4)) {
+                    System.out.println("😠Invalid cell! Please try again.");
+                    continue;
+                }
+
+                //check if cell is already filled
+                if (!gameBoard[row][col].equals("[  ]")) {
+                    System.out.println("🫤This cell is already filled! Please try again.");
+                    continue;
+                }
+            }
+            break;
+        }
+        }
 
 }
